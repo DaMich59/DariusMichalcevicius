@@ -1,0 +1,473 @@
+import java.util.HashSet;
+import java.util.Scanner;
+import java.util.Set;
+
+class Board{
+    public class Move{
+        int x,y;
+        Move (int x, int y)
+        {
+            this.x = x;
+            this.y = y;
+        }
+        @Override
+        public String toString(){
+            return "["+x+", "+y+"]";
+        }
+
+        @Override
+        public boolean equals(Object o){
+            return o.hashCode()==this.hashCode();
+        }
+
+        @Override
+        public int hashCode() {
+            return Integer.parseInt(x+""+y);
+        }
+    }
+    private final char[][] field;
+    int WCount, BCount, emptySpace;
+    private char[] gameFieldX = new char[]{'A','B','C','D','E','F','G','H'};
+    public Board()
+    {
+
+        field = new char[][]{
+                {'-','-','-','-','-','-','-','-',},
+                {'-','-','-','-','-','-','-','-',},
+                {'-','-','-','-','-','-','-','-',},
+                {'-','-','-','W','B','-','-','-',},
+                {'-','-','-','B','W','-','-','-',},
+                {'-','-','-','-','-','-','-','-',},
+                {'-','-','-','-','-','-','-','-',},
+                {'-','-','-','-','-','-','-','-',},
+        };
+    }
+    public void updateScores()
+    {
+        WCount = 0;
+        BCount = 0;
+        emptySpace = 0;
+        for(int i = 0; i < 8; i++)
+        {
+            for(int j=0;j<8; j++)
+            {
+                if(field[i][j]=='W')
+                    WCount++;
+                else if(field[i][j]=='B')
+                    BCount++;
+                else
+                    emptySpace++;
+            }
+        }
+    }
+    public void displayBoard(Board b)
+    {
+        System.out.print("\n  ");
+        for(int i=0; i<8;i++) System.out.print(gameFieldX[i]+" ");
+        System.out.println();
+        for(int i=0; i<8;i++)
+        {
+            System.out.print((i+1)+" ");
+            for(int j=0;j<8;j++)
+            {
+                System.out.print(b.field[i][j]+" ");
+            }
+            System.out.println();
+        }
+    }
+    private void findPlaceableLocations(char player, char opponent, HashSet<Move> placeablePositions)
+    {
+        for(int i = 0; i < 8; i++)
+        {
+            for(int j = 0; j < 8; j++)
+            {
+                if(field[i][j] == opponent)
+                {
+                    int rezI = i, rezJ = j;
+                    if(i - 1 >= 0 && j - 1 >= 0 && field[i-1][j-1] == '-')
+                    {
+                        i++;
+                        j++;
+                        while(i < 7 && j < 7 && field[i][j] == opponent)
+                        {
+                            i++;
+                            j++;
+                        }
+                        if(i < 8 && j < 8 && field[i][j] == player)
+                            placeablePositions.add(new Move(rezI-1, rezJ-1));
+                    }
+                    i = rezI;
+                    j = rezJ;
+                    if(i - 1 >= 0 && field[i-1][j] == '-')
+                    {
+                        i = i+1;
+                        while(i < 8&& field[i][j] == opponent)
+                            i++;
+                        if(i < 8 && field[i][j] == player)
+                            placeablePositions.add(new Move(rezI-1, rezJ));
+                    }
+                    i=rezI;
+                    if(i - 1 >= 0 && j + 1 < 8 && field[i-1][j+1] == '-')
+                    {
+                        i++;
+                        j--;
+                        while(i < 8 && j > 0 && field[i][j] == opponent)
+                        {
+                            i++;
+                            j--;
+                        }
+                        if(i < 8 && j >= 0 && field[i][j] == player)
+                            placeablePositions.add(new Move(rezI-1, rezJ+1));
+                    }
+                    i = rezI;
+                    j = rezJ;
+                    if(j - 1 >= 0 && field[i][j-1] == '-')
+                    {
+                        j++;
+                        while(j < 8 && field[i][j] == opponent)
+                            j++;
+                        if(j < 8 && field[i][j] == player)
+                            placeablePositions.add(new Move(rezI, rezJ-1));
+                    }
+                    j=rezJ;
+                    if(j + 1 < 8 && field[i][j+1] == '-')
+                    {
+                        j--;
+                        while(j > 0 && field[i][j] == opponent)
+                            j--;
+                        if(j >= 0 && field[i][j] == player)
+                            placeablePositions.add(new Move(rezI, rezJ+1));
+                    }
+                    j = rezJ;
+                    if(i + 1 < 8 && j - 1 >= 0 && field[i+1][j-1] == '-')
+                    {
+                        i--;
+                        j++;
+                        while(i > 0 && j < 8 && field[i][j] == opponent)
+                        {
+                            i--;
+                            j++;
+                        }
+                        if(i >= 0 && j < 8 && field[i][j] == player)
+                            placeablePositions.add(new Move(rezI+1, rezJ-1));
+                    }
+                    i = rezI;
+                    j = rezJ;
+                    if(i + 1 < 8 && field[i+1][j] == '-')
+                    {
+                        i--;
+                        while(i > 0 && field[i][j] == opponent)
+                            i--;
+                        if(i >= 0 && field[i][j] == player)
+                            placeablePositions.add(new Move(rezI+1, rezJ));
+                    }
+                    i=rezI;
+                    if(i + 1 <8 && j + 1 < 8 && field[i+1][j+1] == '-')
+                    {
+                        i--;
+                        j--;
+                        while(i > 0 && j > 0 && field[i][j] == opponent)
+                        {
+                            i--;
+                            j--;
+                        }
+                        if(i >= 0 && j >= 0 && field[i][j] == player)
+                            placeablePositions.add(new Move(rezI+1, rezJ+1));
+                    }
+                    i = rezI;
+                    j = rezJ;
+                }
+            }
+        }
+    }
+    public void placeAPeaces(Move mo, char player, char opponent)
+    {
+        int i = mo.x, j = mo.y;
+        field[i][j] = player;
+        int rezI = i, rezJ = j;
+        if (i - 1 >= 0 && field[i - 1][j] == opponent)
+        {
+            i--;
+            while (i >= 0 && field[i][j] == opponent)
+                i--;
+            if (i >= 0 && field[i][j] == player)
+            {
+                while (i != rezI)
+                    field[i++][j] = player;
+            }
+        }
+        i = rezI;
+        if (i + 1 < 8 && field[i + 1][j] == opponent)
+        {
+            i++;
+            while (i < 8 && field[i][j] == opponent)
+                i++;
+            if (i < 8 && field[i][j] == player)
+            {
+                while (i != rezI)
+                    field[i--][j] = player;
+            }
+        }
+        i = rezI;
+        if (j - 1 >= 0 && field[i][j - 1] == opponent)
+        {
+            j--;
+            while (j >= 0 && field[i][j] == opponent)
+                j--;
+            if (j >= 0 && field[i][j] == player)
+            {
+                while (j != rezJ)
+                    field[i][j++] = player;
+            }
+        }
+        j = rezJ;
+        if (j + 1 < 8 && field[i][j + 1] == opponent)
+        {
+            j++;
+            while (j < 8 && field[i][j] == opponent)
+                j++;
+            if (j < 8 && field[i][j] == player)
+            {
+                while (j != rezJ)
+                    field[i][j--] = player;
+            }
+        }
+        j = rezJ;
+        if (i - 1 >= 0 && j + 1 < 8 && field[i - 1][j + 1] == opponent)
+        {
+            i--;
+            j++;
+            while (i >= 0 && j < 8 && field[i][j] == opponent)
+            {
+                i--;
+                j++;
+            }
+            if (i >= 0 && j < 8 && field[i][j] == player)
+            {
+                while (i != rezI && j != rezJ)
+                    field[i++][j--] = player;
+            }
+        }
+        i = rezI;
+        j = rezJ;
+        if(i - 1 >= 0 && j - 1 >= 0 && field[i-1][j-1] == opponent)
+        {
+            i--;
+            j--;
+            while(i > 0 && j>0 && field[i][j] == opponent)
+            {
+                i--;
+                j--;
+            }
+            if(i >= 0 && j >= 0 && field[i][j] == player)
+            {
+                while(i != rezI && j != rezJ)
+                    field[i++][j++] = player;
+            }
+        }
+        i = rezI;
+        j = rezJ;
+        if(i + 1 < 8 && j + 1 < 8 && field[i+1][j+1]==opponent)
+        {
+            i++;
+            j++;
+            while(i < 8 && j < 8 && field[i][j]==opponent)
+            {
+                i++;
+                j++;
+            }
+            if(i < 8 && j < 8 && field[i][j]==player)
+            {
+                while(i != rezI && j != rezJ)
+                    field[i--][j--] = player;
+            }
+        }
+        i = rezI;
+        j = rezJ;
+        if(i + 1 < 8 && j - 1 >=0 && field[i + 1][j - 1] == opponent)
+        {
+            i++;
+            j--;
+            while (i < 8 && j>=0 && field[i][j] == opponent)
+            {
+                i++;
+                j--;
+            }
+            if(i<8 && j>=0 && field[i][j] == player)
+            {
+                while(i != rezI && j != rezJ)
+                    field[i--][j++] = player;
+            }
+        }
+    }
+    public void showPlaceableLocations(HashSet<Move> show)
+    {
+        for(Move p:show)
+            field[p.x][p.y]='@';
+        displayBoard(this);
+        for(Move p:show)
+            field[p.x][p.y]='-';
+    }
+    public HashSet<Move> getWhereToPlacePeace(char player, char opponent)
+    {
+        HashSet<Move> whereToPlacePeace = new HashSet<>();
+        findPlaceableLocations(player,opponent,whereToPlacePeace);
+        return whereToPlacePeace;
+    }
+    public int replaceX(char x)
+    {
+        int replace;
+
+        replace= Character.toLowerCase(x) - 'a';
+        return replace;
+    }
+    public int findAWinner(Set<Move> whiteMove, Set<Move> blackMove)
+    {
+        updateScores();
+        if(emptySpace == 0)
+        {
+            if(WCount>BCount) return 1;
+            else if(WCount<BCount) return 2;
+            else return 0;
+        }
+        if(WCount==0 || BCount==0)
+        {
+            if(WCount>0) return 1;
+            else if (BCount>0) return 2;
+        }
+        if(whiteMove.isEmpty()&&blackMove.isEmpty())
+        {
+            if(WCount>BCount) return 1;
+            else if(WCount<BCount) return 2;
+            else return 0;
+        }
+        return 3;
+    }
+}
+
+public class mainPage {
+
+        public static void play(Board b)
+        {
+            System.out.println("White peace move first");
+            b.updateScores();
+            System.out.println("\nBlack peace placed: "+b.BCount+" White peace placed: "+b.WCount + " Space left to place peace:"+ b.emptySpace);
+            Scanner scan = new Scanner(System.in);
+            Board.Move move = b.new Move(-1, -1);
+            //b.displayBoard(b);
+            String line;
+            boolean turnSkip, lineCheck1, lineCheck2;
+            int winner;
+            while(true)
+            {
+                turnSkip=false;
+
+                HashSet<Board.Move> WhitePeacePlace = b.getWhereToPlacePeace('W','B');
+                HashSet<Board.Move> BlackPeacePlace = b.getWhereToPlacePeace('B','W');
+
+                b.showPlaceableLocations(WhitePeacePlace);
+                winner = b.findAWinner(WhitePeacePlace,BlackPeacePlace);
+                if(winner==0)
+                {
+                    System.out.println("There is no winner it's a draw.");
+                    break;
+                }
+                else if(winner==1)
+                {
+                    System.out.println("White player won with score:"+ b.WCount+ " : "+ b.BCount);
+                    break;
+                }
+                else if(winner==2)
+                {
+                    System.out.println("Black player won with score:"+ b.BCount+ " : "+ b.WCount);
+                    break;
+                }
+                if (WhitePeacePlace.isEmpty())
+                {
+                    System.out.println("No turn able to White player");
+                    turnSkip=true;
+                }
+                if(!turnSkip)
+                {
+                    System.out.println("White player turn");
+                    line = scan.nextLine();
+                    char cha[] = line.toCharArray();
+                    lineCheck1= Character.isLetter(line.charAt(0));
+                    lineCheck2= Character.isDigit(line.charAt(1));
+                    if(lineCheck1&&lineCheck2)
+                    {
+                        move.y = b.replaceX(line.charAt(0));
+                        move.x = (Integer.parseInt(line.charAt(1) + "") - 1);
+                    }
+
+                    while(!lineCheck1||!lineCheck2||!WhitePeacePlace.contains(move))
+                    {
+                        System.out.println("Sorry you cannot place peace here try again\n\nWhite player turn");
+                        line = scan.nextLine();
+                        lineCheck1= Character.isLetter(line.charAt(0));
+                        lineCheck2= Character.isDigit(line.charAt(1));
+                        move.y=b.replaceX(line.charAt(0));
+                        move.x=(Integer.parseInt(line.charAt(1)+"")-1);
+                    }
+
+                        b.placeAPeaces(move, 'W', 'B');
+                        b.updateScores();
+                        System.out.println("\nBlack peace placed: " + b.BCount + " White peace placed: " + b.WCount + " Space left to place peace:" + b.emptySpace);
+                }
+
+                WhitePeacePlace = b.getWhereToPlacePeace('W','B');
+                BlackPeacePlace = b.getWhereToPlacePeace('B','W');
+
+                b.showPlaceableLocations(BlackPeacePlace);
+                winner = b.findAWinner(WhitePeacePlace,BlackPeacePlace);
+                if(winner==0)
+                {
+                    System.out.println("There is no winner it's a draw.");
+                    break;
+                }
+                else if(winner==1)
+                {
+                    System.out.println("White player won with score:"+ b.WCount+ " : "+ b.BCount);
+                    break;
+                }
+                else if(winner==2)
+                {
+                    System.out.println("Black player won with score:"+ b.BCount+ " : "+ b.WCount);
+                    break;
+                }
+                if(BlackPeacePlace.isEmpty())
+                {
+                    System.out.println("No turn able to Black player");
+                    turnSkip=true;
+                }
+                if(!turnSkip)
+                {
+                    System.out.println("Black player turn");
+                    line = scan.nextLine();
+                    lineCheck1= Character.isLetter(line.charAt(0));
+                    lineCheck2= Character.isDigit(line.charAt(1));
+                    if(lineCheck1&&lineCheck2)
+                    {
+                        move.y = b.replaceX(line.charAt(0));
+                        move.x = (Integer.parseInt(line.charAt(1) + "") - 1);
+                    }
+                    while(!lineCheck1||!lineCheck2||!BlackPeacePlace.contains(move))
+                    {
+                        System.out.println("Sorry you cannot place peace here try again\n\nBlack player turn");
+                        line = scan.nextLine();
+                        lineCheck1= Character.isLetter(line.charAt(0));
+                        lineCheck2= Character.isDigit(line.charAt(1));
+                        move.y=b.replaceX(line.charAt(0));
+                        move.x=(Integer.parseInt(line.charAt(1)+"")-1);
+                    }
+                    b.placeAPeaces(move, 'B','W');
+                    b.updateScores();
+                    System.out.println("\nBlack peace placed: "+b.BCount+" White peace placed: "+b.WCount + " Space left to place peace:"+ b.emptySpace);
+                }
+            }
+        }
+    public static void main(String[] args) {
+        Board b = new Board();
+        play(b);
+    }
+}
